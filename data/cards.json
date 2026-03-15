@@ -1,0 +1,72 @@
+[
+  {
+    "id": "arabic_letter_alif",
+    "language": "arabic",
+    "type": "letter",
+    "front": "ا",
+    "answer": "alif",
+    "aliases": ["a", "aa"],
+    "dependencies": [],
+    "hint": "Arabic letter name"
+  },
+  {
+    "id": "arabic_letter_baa",
+    "language": "arabic",
+    "type": "letter",
+    "front": "ب",
+    "answer": "baa",
+    "aliases": ["b", "ba"],
+    "dependencies": [],
+    "hint": "Arabic letter name"
+  },
+  {
+    "id": "arabic_letter_taa",
+    "language": "arabic",
+    "type": "letter",
+    "front": "ت",
+    "answer": "taa",
+    "aliases": ["t", "ta"],
+    "dependencies": [],
+    "hint": "Arabic letter name"
+  },
+  {
+    "id": "arabic_word_hayat",
+    "language": "arabic",
+    "type": "word",
+    "front": "حياة",
+    "answer": "hayat",
+    "aliases": ["life", "hayah"],
+    "dependencies": ["arabic_letter_alif"],
+    "hint": "Means 'life'"
+  },
+  {
+    "id": "korean_letter_giyeok",
+    "language": "korean",
+    "type": "letter",
+    "front": "ㄱ",
+    "answer": "giyeok",
+    "aliases": ["g", "k", "기역"],
+    "dependencies": [],
+    "hint": "First consonant of Hangul"
+  },
+  {
+    "id": "korean_letter_nieun",
+    "language": "korean",
+    "type": "letter",
+    "front": "ㄴ",
+    "answer": "nieun",
+    "aliases": ["n", "니은"],
+    "dependencies": [],
+    "hint": "Second consonant of Hangul"
+  },
+  {
+    "id": "korean_word_annyeong",
+    "language": "korean",
+    "type": "word",
+    "front": "안녕",
+    "answer": "annyeong",
+    "aliases": ["hello", "hi", "bye"],
+    "dependencies": ["korean_letter_nieun"],
+    "hint": "Informal greeting"
+  }
+]

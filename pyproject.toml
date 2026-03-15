@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "language-trainer"
+version = "0.1.0"
+description = "A PyDroid-friendly language learning app with spaced repetition and audio support"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "gTTS",
+    "pygame",
+]
+
+[project.scripts]
+language-trainer = "language_trainer.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
