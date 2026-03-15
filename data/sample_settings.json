@@ -1,0 +1,7 @@
+{
+  "default_language": "arabic",
+  "lesson_size": 10,
+  "mastery_threshold": 5,
+  "unlock_score": 0.8,
+  "audio_enabled": true
+}
