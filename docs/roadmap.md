@@ -1,21 +1,24 @@
 # Roadmap
 
-This file tracks planned improvements for Language Trainer.
+This project now has a modular CLI trainer and reusable learning engine. The next milestones are focused on expanding the teaching experience rather than turning the app into a translator.
 
 ## Near-term
 
-- [ ] **Better Android audio playback** — investigate alternatives to pygame that work reliably in PyDroid (e.g. `android.media.MediaPlayer` via Pyjnius, or pre-bundled `playsound`).
-- [ ] **More vocabulary** — expand `data/cards.json` with common Arabic and Korean words and phrases.
-- [ ] **Settings UI** — let the user toggle audio, change lesson size, and reset progress from within the app.
+- [ ] Build a small Kivy interface on top of the existing engine adapter.
+- [ ] Improve PyDroid audio backend reliability without coupling playback directly into lesson logic.
+- [ ] Expand starter datasets while preserving dependency graphs and schema tags.
+- [ ] Add lesson summaries with schema-family reinforcement suggestions.
 
 ## Medium-term
 
-- [ ] **Kivy UI** — implement `src/language_trainer/ui/kivy_app.py` so the app has a touch-friendly interface suitable for mobile devices.
-- [ ] **More languages** — add French and Spanish card sets as proofs-of-concept for the multi-language architecture.
-- [ ] **Smarter spaced repetition** — integrate a proper SM-2 / FSRS algorithm instead of the simple mastery-threshold approach.
+- [ ] Support richer script teaching, including sound-letter prompts and writing guidance.
+- [ ] Add related-card review sessions driven by shared schema families.
+- [ ] Generate phrase combinations from mastered schema-linked words.
+- [ ] Add import/export of progress snapshots for backup on Android devices.
 
 ## Long-term
 
-- [ ] **Sync / cloud save** — allow progress to be backed up and restored across devices.
-- [ ] **Audio recording** — let learners record their own pronunciation and compare it against the reference audio.
-- [ ] **Community card packs** — support importing third-party `cards.json` files.
+- [ ] Ship a polished Kivy UI with touch controls and optional audio buttons.
+- [ ] Add sentence-level learning built on mastered phrases and conceptual schemas.
+- [ ] Support additional languages while keeping alphabet-first progression rules.
+- [ ] Explore lightweight semantic recommendations based on schema overlap and review history.
