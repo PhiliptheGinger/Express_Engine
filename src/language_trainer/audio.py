@@ -1,63 +1,69 @@
-"""Audio playback: locate files, play them, and fall back gracefully."""
+"""Audio backends kept separate from the learning engine."""
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
+from typing import Protocol
 
-# Audio directory relative to the project root.
+os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
+
 _AUDIO_DIR = Path(__file__).resolve().parents[2] / "audio"
 
 
-def _audio_path(card_id: str) -> Path:
-    """Return the expected MP3 path for a given card ID."""
-    return _AUDIO_DIR / f"{card_id}.mp3"
+class AudioBackend(Protocol):
+	"""Protocol for pluggable audio playback backends."""
+
+	def play_file(self, path: Path) -> bool:
+		"""Play a file and return whether playback was attempted successfully."""
+
+
+class NullAudioBackend:
+	"""Fallback backend used on environments where playback is unreliable."""
+
+	def play_file(self, path: Path) -> bool:
+		return False
+
+
+class PygameAudioBackend:
+	"""Optional pygame backend for environments where it works."""
+
+	def __init__(self) -> None:
+		import pygame  # noqa: PLC0415
+
+		pygame.mixer.init()
+		self._pygame = pygame
+
+	def play_file(self, path: Path) -> bool:
+		self._pygame.mixer.music.load(str(path))
+		self._pygame.mixer.music.play()
+		while self._pygame.mixer.music.get_busy():
+			self._pygame.time.wait(100)
+		return True
 
 
 class AudioPlayer:
-    """Play audio files for cards using pygame (if available)."""
+	"""Facade around card-based audio lookup and backend management."""
 
-    def __init__(self) -> None:
-        self._available = self._init_pygame()
+	def __init__(self, enabled: bool = True) -> None:
+		self._enabled = enabled
+		self._backend: AudioBackend = self._build_backend() if enabled else NullAudioBackend()
 
-    # ------------------------------------------------------------------
-    # Public interface
-    # ------------------------------------------------------------------
+	def play(self, card_id: str) -> bool:
+		"""Attempt to play the audio file matching *card_id*."""
+		if not self._enabled:
+			return False
+		path = _AUDIO_DIR / f"{card_id}.mp3"
+		if not path.exists():
+			return False
+		try:
+			return self._backend.play_file(path)
+		except Exception:  # noqa: BLE001
+			return False
 
-    def play(self, card_id: str) -> None:
-        """Play the audio file associated with *card_id*.
-
-        Falls back silently if pygame is unavailable or the file is missing.
-        """
-        if not self._available:
-            return
-
-        path = _audio_path(card_id)
-        if not path.exists():
-            return
-
-        try:
-            import pygame  # noqa: PLC0415
-
-            pygame.mixer.music.load(str(path))
-            pygame.mixer.music.play()
-            # Block until playback finishes.
-            while pygame.mixer.music.get_busy():
-                pygame.time.wait(100)
-        except Exception:  # noqa: BLE001
-            # Never let an audio error crash the lesson.
-            pass
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _init_pygame() -> bool:
-        """Attempt to initialise pygame mixer; return True on success."""
-        try:
-            import pygame  # noqa: PLC0415
-
-            pygame.mixer.init()
-            return True
-        except Exception:  # noqa: BLE001
-            return False
+	@staticmethod
+	def _build_backend() -> AudioBackend:
+		try:
+			return PygameAudioBackend()
+		except Exception:  # noqa: BLE001
+			return NullAudioBackend()

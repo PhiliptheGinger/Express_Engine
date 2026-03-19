@@ -1,65 +1,106 @@
-"""Card definitions and JSON card-loading logic."""
+"""Card models and card-deck loading helpers."""
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
-# Default location of the card data file, relative to the project root.
 _DEFAULT_CARDS_PATH = Path(__file__).resolve().parents[2] / "data" / "cards.json"
+_VALID_TYPES = {"letter", "word", "phrase"}
 
 
-@dataclass
+@dataclass(slots=True)
 class Card:
-    """A single flashcard."""
+	"""A single learning card.
 
-    id: str
-    language: str
-    type: str          # 'letter', 'word', 'phrase'
-    front: str         # The character / word / phrase shown to the learner
-    answer: str        # Canonical correct answer
-    aliases: list[str] = field(default_factory=list)
-    dependencies: list[str] = field(default_factory=list)
-    hint: str = ""
+	The data model intentionally carries both current SRS fields and future-facing
+	concept metadata so the engine can stay reusable across CLI and later UIs.
+	"""
 
-    @property
-    def accepted_answers(self) -> list[str]:
-        """Return all answers that should be marked correct (lowercase)."""
-        return [self.answer.lower()] + [a.lower() for a in self.aliases]
+	id: str
+	language: str
+	type: str
+	front: str
+	answer: str
+	aliases: list[str] = field(default_factory=list)
+	hint: str = ""
+	dependencies: list[str] = field(default_factory=list)
+	schema: str = "GENERAL"
+	repetition: int = 0
+	interval: int = 0
+	ef: float = 2.5
+	next_due: str | None = None
+	last_reviewed: str | None = None
+	times_studied: int = 0
+
+	@property
+	def accepted_answers(self) -> set[str]:
+		"""Return the accepted answers for typed checks."""
+		answers = {self.answer.casefold()}
+		answers.update(alias.casefold() for alias in self.aliases)
+		return answers
+
+	@property
+	def is_new(self) -> bool:
+		"""Return whether the card has never been reviewed."""
+		return self.repetition <= 0 and self.times_studied <= 0
+
 
 
 def load_cards(path: Path | None = None) -> list[Card]:
-    """Load cards from a JSON file.
+	"""Load and validate cards from disk."""
+	cards_path = path or _DEFAULT_CARDS_PATH
+	if not cards_path.exists():
+		return []
 
-    Parameters
-    ----------
-    path:
-        Path to the JSON card file.  Defaults to ``data/cards.json`` in the
-        project root.
+	with cards_path.open(encoding="utf-8") as handle:
+		raw_cards = json.load(handle)
 
-    Returns
-    -------
-    list[Card]
-        The parsed card objects.
-    """
-    cards_path = path or _DEFAULT_CARDS_PATH
-    if not cards_path.exists():
-        return []
+	cards: list[Card] = []
+	for raw in raw_cards:
+		_validate_raw_card(raw)
+		cards.append(
+			Card(
+				id=raw["id"],
+				language=raw["language"],
+				type=raw["type"],
+				front=raw["front"],
+				answer=raw["answer"],
+				aliases=list(raw.get("aliases", [])),
+				hint=raw.get("hint", ""),
+				dependencies=list(raw.get("dependencies", [])),
+				schema=raw.get("schema", "GENERAL"),
+				repetition=int(raw.get("repetition", 0)),
+				interval=int(raw.get("interval", 0)),
+				ef=float(raw.get("ef", 2.5)),
+				next_due=raw.get("next_due"),
+				last_reviewed=raw.get("last_reviewed"),
+				times_studied=int(raw.get("times_studied", 0)),
+			)
+		)
+	return cards
 
-    with cards_path.open(encoding="utf-8") as fh:
-        raw = json.load(fh)
 
-    return [
-        Card(
-            id=entry["id"],
-            language=entry["language"],
-            type=entry["type"],
-            front=entry["front"],
-            answer=entry["answer"],
-            aliases=entry.get("aliases", []),
-            dependencies=entry.get("dependencies", []),
-            hint=entry.get("hint", ""),
-        )
-        for entry in raw
-    ]
+
+def _validate_raw_card(raw: dict[str, Any]) -> None:
+	"""Validate the minimum required card fields."""
+	required_fields = {
+		"id",
+		"language",
+		"type",
+		"front",
+		"answer",
+		"aliases",
+		"hint",
+		"dependencies",
+		"schema",
+	}
+	missing = sorted(required_fields.difference(raw))
+	if missing:
+		raise ValueError(f"Card '{raw.get('id', '<unknown>')}' is missing fields: {', '.join(missing)}")
+
+	card_type = raw["type"]
+	if card_type not in _VALID_TYPES:
+		raise ValueError(f"Card '{raw['id']}' has unsupported type '{card_type}'.")

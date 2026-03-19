@@ -1,7 +1,8 @@
 {
-  "default_language": "arabic",
-  "lesson_size": 10,
-  "mastery_threshold": 5,
-  "unlock_score": 0.8,
-  "audio_enabled": true
+	"default_language": "arabic",
+	"new_batch_size": 3,
+	"review_batch_size": 10,
+	"mastery_repetition_threshold": 3,
+	"audio_enabled": true,
+	"auto_play_audio_in_study": false
 }

@@ -1,34 +1,44 @@
-"""Kivy-based graphical UI for Language Trainer.
-
-This module is a placeholder for future Kivy UI development.
-The learning engine (engine.py) is intentionally kept separate so it
-remains fully reusable from both the CLI app (app.py) and this UI.
-
-To run the Kivy app (once implemented):
-    python3 -m language_trainer.ui.kivy_app
-"""
+"""Minimal Kivy-ready UI shell that reuses the engine."""
 
 from __future__ import annotations
 
+from language_trainer.engine import Engine
+from language_trainer.storage import Storage
+
+
+class KivyTrainerAdapter:
+	"""Thin adapter for a future touch UI.
+
+	The actual Kivy widgets are intentionally deferred, but this adapter keeps the
+	data access points explicit so a mobile screen flow can call the same engine
+	used by the CLI.
+	"""
+
+	def __init__(self) -> None:
+		self.storage = Storage()
+		self.engine = Engine(self.storage)
+
+	def summary(self) -> dict[str, object]:
+		return {
+			"languages": self.engine.available_languages(),
+			"modes": self.engine.available_modes(),
+		}
+
+
 
 def launch() -> None:
-    """Launch the Kivy UI.
+	"""Entry point for a future Kivy UI."""
+	try:
+		import kivy  # noqa: F401
+	except ImportError:
+		print("Kivy is not installed. Install it with: pip install kivy")
+		return
 
-    Replace this stub with a real ``kivy.app.App`` subclass when you are
-    ready to move away from the CLI.
-    """
-    try:
-        import kivy  # noqa: F401
-    except ImportError:
-        print(
-            "Kivy is not installed.  Install it with:\n"
-            "    pip install kivy\n"
-            "and then run this module again."
-        )
-        return
-
-    print("Kivy UI is not yet implemented.  Coming soon!")
+	adapter = KivyTrainerAdapter()
+	print("Minimal Kivy bridge ready.")
+	print("Available languages:", ", ".join(adapter.summary()["languages"]))
+	print("Next step: bind these engine calls to a language screen, menu screen, and card screen.")
 
 
 if __name__ == "__main__":
-    launch()
+	launch()
